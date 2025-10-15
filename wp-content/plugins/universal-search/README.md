@@ -29,3 +29,5 @@ The plugin maps `/search-all/` to a simple template in `templates/results.php`.
 - Voice & Image requests call OpenAI (Whisper + GPT-4o-mini for intent extraction / vision).
 - Text search can go directly via `/search-all/?q=...`.
 - For indexing WordPress content to Typesense, create a `site_content` collection and sync posts/products via cron (not included).
+
+
