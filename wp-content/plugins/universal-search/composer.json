@@ -1,0 +1,13 @@
+{
+  "name": "webntricks/universal-search",
+  "description": "Voice/Text/Image universal search for WordPress using Typesense and OpenAI.",
+  "type": "project",
+  "require": {
+    "typesense/typesense-php": "^7.5"
+  },
+  "autoload": {
+    "psr-4": {
+      "UNIV_SEARCH\\": "inc/"
+    }
+  }
+}
