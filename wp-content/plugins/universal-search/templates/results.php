@@ -16,9 +16,24 @@ get_header();
         <?php foreach ($resp['hits'] as $hit): $d = $hit['document']; ?>
           <li class="us-card">
             <a href="<?php echo esc_url($d['permalink'] ?? '#'); ?>">
+              <?php if (!empty($d['image'])): ?>
+                <div class="us-card-thumb"><img src="<?php echo esc_url($d['image']); ?>" alt="" loading="lazy" /></div>
+              <?php endif; ?>
               <h3><?php echo esc_html($d['title'] ?? 'Untitled'); ?></h3>
               <p><?php echo esc_html(wp_trim_words($d['excerpt'] ?? ($d['content'] ?? ''), 24)); ?></p>
-              <small><?php echo esc_html($d['post_type'] ?? ''); ?></small>
+              <div class="us-card-meta">
+                <span class="us-card-type"><?php echo esc_html($d['post_type'] ?? ''); ?></span>
+                <?php
+                $price = isset($d['price']) ? floatval($d['price']) : 0;
+                if ($price > 0) {
+                  if (function_exists('wc_price')) {
+                    echo '<span class="us-card-price">' . wp_kses_post(wc_price($price)) . '</span>';
+                  } else {
+                    echo '<span class="us-card-price">' . esc_html(number_format($price, 2)) . '</span>';
+                  }
+                }
+                ?>
+              </div>
             </a>
           </li>
         <?php endforeach; ?>

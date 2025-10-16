@@ -17,6 +17,9 @@ class Render {
     wp_localize_script('univ-search', 'UnivSearch', [
       'restBase' => esc_url_raw(rest_url('univ-search/v1')),
       'nonce' => wp_create_nonce('wp_rest'),
+      'indexedPostTypes' => Typesense::get_indexable_post_types(),
+      'resultsBase' => esc_url_raw(home_url('/search-all/')),
+      'currency' => function_exists('get_woocommerce_currency') ? get_woocommerce_currency() : 'USD',
     ]);
   }
 
@@ -36,6 +39,10 @@ class Render {
               <input name="q" type="search" placeholder="Search…" autocomplete="off" />
               <button type="submit">Go</button>
             </form>
+            <div class="us-instant" hidden>
+              <ul class="us-instant-list" role="listbox"></ul>
+              <a class="us-instant-more button" href="#">View more results</a>
+            </div>
           </div>
           <div class="us-mode us-mode-voice" hidden>
             <button class="us-voice-start" type="button">🎤 Start</button>
