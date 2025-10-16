@@ -51,7 +51,12 @@ class REST {
     $payload = json_decode($req->get_body(), true);
     if (!$payload) return self::err('Bad JSON.');
     $payload = \UNIV_SEARCH\us_sanitize_array($payload);
-    $results = Typesense::search($payload);
+    try {
+      $results = Typesense::search($payload);
+    } catch (\Throwable $e) {
+      error_log('Universal Search REST search error: ' . $e->getMessage());
+      return self::err('Search service unavailable.', 503);
+    }
     return ['results' => $results];
   }
 

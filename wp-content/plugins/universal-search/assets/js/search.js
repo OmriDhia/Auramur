@@ -24,20 +24,24 @@
   if (!widgets.length) return;
 
   widgets.forEach((widget) => {
-    const toggle = $('.us-toggle', widget);
-    if (!toggle) return;
-
-    const panelId = toggle.getAttribute('aria-controls');
-    const panel = panelId ? document.getElementById(panelId) : $('.us-panel', widget);
+    const panel = $('.us-panel', widget);
     if (!panel) return;
 
-    const tabs = $$('.us-modes [role="tab"]', panel);
+    const toggle = $('.us-toggle', widget);
+    if (toggle) {
+      const panelId = toggle.getAttribute('aria-controls');
+      const resolvedPanel = panelId ? document.getElementById(panelId) : panel;
+      const target = resolvedPanel || panel;
+      toggle.addEventListener('click', () => {
+        const open = target.hasAttribute('hidden');
+        target.toggleAttribute('hidden', !open);
+        toggle.setAttribute('aria-expanded', String(open));
+      });
+    } else {
+      panel.removeAttribute('hidden');
+    }
 
-    toggle.addEventListener('click', () => {
-      const open = panel.hasAttribute('hidden');
-      panel.toggleAttribute('hidden', !open);
-      toggle.setAttribute('aria-expanded', String(open));
-    });
+    const tabs = $$('.us-modes [role="tab"]', panel);
 
     tabs.forEach(tab => tab.addEventListener('click', () => {
       tabs.forEach(t => t.setAttribute('aria-selected', 'false'));
