@@ -8,6 +8,24 @@
 .us-mode form { display: flex; gap: .5rem; }
 .us-mode input[type="search"], .us-mode input[type="file"] { flex: 1; }
 .us-voice-status { font-size: .9rem; color: #666; margin-top: .35rem; }
+.us-instant { margin-top: .5rem; border: 1px solid #e6e6e6; border-radius: .75rem; background: #fff; box-shadow: 0 10px 25px rgba(0,0,0,.08); overflow: hidden; }
+.us-instant[hidden] { display: none !important; }
+.us-instant-list { list-style: none; margin: 0; padding: 0; max-height: 260px; overflow-y: auto; }
+.us-instant-list li { border-bottom: 1px solid #f3f3f3; }
+.us-instant-list li:last-child { border-bottom: none; }
+.us-instant-list a { display: block; padding: .65rem .75rem; text-decoration: none; color: inherit; transition: background .15s ease-in-out; }
+.us-instant-list a:hover, .us-instant-list a:focus { background: #f5f9ff; outline: none; }
+.us-instant-title { font-weight: 600; display: block; margin-bottom: .15rem; }
+.us-instant-meta { display: block; font-size: .85rem; color: #666; }
+.us-instant-excerpt { display: block; font-size: .85rem; color: #777; margin-top: .35rem; }
+.us-instant-status, .us-instant-empty, .us-instant-error { padding: .65rem .75rem; font-size: .9rem; color: #666; }
+.us-instant-error { color: #c0392b; }
+.us-instant-more.button { display: block; margin: .35rem .6rem .6rem; text-align: center; padding: .5rem .75rem; border-radius: .6rem; background: #f5f5f5; border: 1px solid #e5e5e5; text-decoration: none; color: inherit; transition: background .15s ease-in-out, border-color .15s ease-in-out; }
+.us-instant-more.button:hover { background: #ebf2ff; border-color: #d6e4ff; }
 .us-results .us-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 1rem; }
 .us-results .us-card { border: 1px solid #eee; border-radius: .75rem; padding: .75rem; background: #fff; }
 .us-results .us-card h3 { margin: 0 0 .25rem; font-size: 1rem; }
+.us-results .us-card-thumb { margin: -.75rem -.75rem .75rem; border-radius: .75rem .75rem 0 0; overflow: hidden; background: #f6f6f6; }
+.us-results .us-card-thumb img { width: 100%; height: 180px; object-fit: cover; display: block; }
+.us-results .us-card-meta { display: flex; align-items: center; gap: .5rem; font-size: .85rem; color: #666; margin-top: .5rem; justify-content: space-between; flex-wrap: wrap; }
+.us-results .us-card-price { font-weight: 600; color: #111; }
