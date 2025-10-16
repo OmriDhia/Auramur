@@ -3,11 +3,17 @@
   "description": "Voice/Text/Image universal search for WordPress using Typesense and OpenAI.",
   "type": "project",
   "require": {
-    "typesense/typesense-php": "^7.5"
+    "typesense/typesense-php": "^5.1",
+    "symfony/http-client": "^7.3"
   },
   "autoload": {
     "psr-4": {
       "UNIV_SEARCH\\": "inc/"
+    }
+  },
+  "config": {
+    "allow-plugins": {
+      "php-http/discovery": true
     }
   }
 }
