@@ -9,7 +9,9 @@ class Render {
   public static function init() {
     add_action('wp_enqueue_scripts', [__CLASS__, 'assets']);
     add_filter('wp_nav_menu_items', [__CLASS__, 'inject_menu_widget'], 10, 2);
-    add_filter('render_block_core/navigation', [__CLASS__, 'inject_block_navigation_widget'], 10, 2);
+
+    add_filter('render_block_core/navigation', [__CLASS__, 'inject_block_navigation_widget'], 10, 3);
+
     add_action('init', [__CLASS__, 'register_results_route']);
     add_filter('template_include', [__CLASS__, 'results_template']);
   }
@@ -31,27 +33,49 @@ class Render {
     return $items . self::get_widget_markup('classic');
   }
 
-  public static function inject_block_navigation_widget($block_content, $block) {
+
+  public static function inject_block_navigation_widget($block_content, $block, $instance = null) {
     if (self::$block_injected) return $block_content;
+    if (is_admin() && !wp_doing_ajax()) return $block_content;
     if (!is_array($block) || ($block['blockName'] ?? '') !== 'core/navigation') return $block_content;
 
-    $registered_locations = get_registered_nav_menus();
-    if (!array_key_exists('primary', $registered_locations)) return $block_content;
+    if ($instance instanceof \WP_Block) {
+      $area = $instance->context['templatePartArea'] ?? '';
+      if (!empty($area) && $area !== 'header') {
+        return $block_content;
+      }
+    }
 
-    $marker_position = strpos($block_content, 'wp-block-navigation__container');
-    if ($marker_position === false) return $block_content;
-
-    $ul_start = strrpos(substr($block_content, 0, $marker_position), '<ul');
-    if ($ul_start === false) return $block_content;
-
-    $ul_open_end = strpos($block_content, '>', $marker_position);
-    if ($ul_open_end === false) return $block_content;
+    if (strpos($block_content, 'univ-search-item') !== false) return $block_content;
 
     $search_markup = self::get_widget_markup('block');
 
-    $block_content = substr($block_content, 0, $ul_open_end + 1)
-      . $search_markup
-      . substr($block_content, $ul_open_end + 1);
+    $block_content = preg_replace_callback(
+      '/(<ul\\b[^>]*class="[^"]*wp-block-navigation__container[^"]*"[^>]*>)/i',
+      function ($matches) use ($search_markup) {
+        return $matches[0] . $search_markup;
+      },
+      $block_content,
+      -1,
+      $double_quote_injections
+    );
+
+    $block_content = preg_replace_callback(
+      "/(<ul\\b[^>]*class='[^']*wp-block-navigation__container[^']*'[^>]*>)/i",
+      function ($matches) use ($search_markup) {
+        return $matches[0] . $search_markup;
+      },
+      $block_content,
+      -1,
+      $single_quote_injections
+    );
+
+    $total_injections = (int) $double_quote_injections + (int) $single_quote_injections;
+
+    if ($total_injections === 0) {
+      return $block_content;
+    }
+
 
     self::$block_injected = true;
 
@@ -70,15 +94,25 @@ class Render {
 
   private static function get_widget_markup(string $context): string {
     $classes = ['menu-item', 'univ-search-item'];
+
+    $content_wrapper_open = '';
+    $content_wrapper_close = '';
+
     if ($context === 'block') {
       $classes[] = 'wp-block-navigation-item';
+      $content_wrapper_open = '<div class="wp-block-navigation-item__content">';
+      $content_wrapper_close = '</div>';
     }
+
+    $panel_id = function_exists('wp_unique_id') ? wp_unique_id('us-panel-') : 'us-panel';
 
     ob_start();
     ?>
       <li class="<?php echo esc_attr(implode(' ', $classes)); ?>">
-        <button class="us-toggle" aria-expanded="false" aria-controls="us-panel">Search</button>
-        <div id="us-panel" class="us-panel" hidden>
+        <?php echo $content_wrapper_open; ?>
+        <button class="us-toggle" aria-expanded="false" aria-controls="<?php echo esc_attr($panel_id); ?>">Search</button>
+        <div id="<?php echo esc_attr($panel_id); ?>" class="us-panel" hidden>
+
           <div class="us-modes" role="tablist">
             <button role="tab" data-mode="text" aria-selected="true">Text</button>
             <button role="tab" data-mode="voice">Voice</button>
@@ -106,6 +140,7 @@ class Render {
             </form>
           </div>
         </div>
+        <?php echo $content_wrapper_close; ?>
       </li>
     <?php
     return trim(ob_get_clean());
