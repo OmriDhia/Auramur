@@ -9,9 +9,23 @@ get_header();
   <h1>Search results</h1>
   <p><strong>Mode:</strong> <?php echo esc_html($mode); ?> · <strong>Query:</strong> <?php echo esc_html($rq['query'] ?? $q); ?></p>
   <?php
+  $warning = '';
   try {
     $resp = \UNIV_SEARCH\Typesense::search(is_array($rq) ? $rq : ['query'=>$q,'limit'=>24,'page'=>1]);
-    if (!empty($resp['hits'])): ?>
+  } catch (\Throwable $e) {
+    error_log('Universal Search template search error: ' . $e->getMessage());
+    $warning = __('Search service unavailable. Showing basic results from WordPress.', 'universal-search');
+    $resp = \UNIV_SEARCH\Typesense::basic_search(is_array($rq) ? $rq : ['query'=>$q,'limit'=>24,'page'=>1]);
+  }
+
+  if (!is_array($resp)) {
+    $resp = ['hits' => []];
+  }
+
+  if (!empty($resp['hits'])):
+    if ($warning): ?>
+      <div class="us-results-warning"><?php echo esc_html($warning); ?></div>
+    <?php endif; ?>
       <ul class="us-grid">
         <?php foreach ($resp['hits'] as $hit): $d = $hit['document']; ?>
           <li class="us-card">
@@ -38,12 +52,12 @@ get_header();
           </li>
         <?php endforeach; ?>
       </ul>
-    <?php else: ?>
-      <p>No results.</p>
-    <?php endif;
-  } catch (\Throwable $e) {
-    echo '<p>Search error: ' . esc_html($e->getMessage()) . '</p>';
-  }
+  <?php else: ?>
+    <?php if ($warning): ?>
+      <div class="us-results-warning"><?php echo esc_html($warning); ?></div>
+    <?php endif; ?>
+    <p>No results.</p>
+  <?php endif; ?>
   ?>
 </main>
 <?php get_footer(); ?>
