@@ -57,16 +57,7 @@ class REST {
       return ['results' => $results];
     } catch (\Throwable $e) {
       error_log('Universal Search REST search error: ' . $e->getMessage());
-      $fallback = Typesense::basic_search($payload);
-      if ($fallback) {
-
-        $response = ['results' => $fallback];
-        if (empty($fallback['hits'])) {
-          $response['warning'] = __('Search service unavailable. Showing basic results from WordPress.', 'universal-search');
-        }
-        return $response;
-      }
-      return self::err('Search service unavailable.', 503);
+      return self::err(__('Search service unavailable. Please try again later.', 'universal-search'), 503);
     }
 
   }
