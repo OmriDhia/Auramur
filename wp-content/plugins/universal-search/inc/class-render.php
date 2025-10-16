@@ -4,9 +4,12 @@ namespace UNIV_SEARCH;
 if (!defined('ABSPATH')) exit;
 
 class Render {
+  private static bool $block_injected = false;
+
   public static function init() {
     add_action('wp_enqueue_scripts', [__CLASS__, 'assets']);
     add_filter('wp_nav_menu_items', [__CLASS__, 'inject_menu_widget'], 10, 2);
+    add_filter('render_block_core/navigation', [__CLASS__, 'inject_block_navigation_widget'], 10, 2);
     add_action('init', [__CLASS__, 'register_results_route']);
     add_filter('template_include', [__CLASS__, 'results_template']);
   }
@@ -25,8 +28,55 @@ class Render {
 
   public static function inject_menu_widget($items, $args) {
     if (!isset($args->theme_location) || $args->theme_location !== 'primary') return $items;
-    ob_start(); ?>
-      <li class="menu-item univ-search-item">
+    return $items . self::get_widget_markup('classic');
+  }
+
+  public static function inject_block_navigation_widget($block_content, $block) {
+    if (self::$block_injected) return $block_content;
+    if (!is_array($block) || ($block['blockName'] ?? '') !== 'core/navigation') return $block_content;
+
+    $registered_locations = get_registered_nav_menus();
+    if (!array_key_exists('primary', $registered_locations)) return $block_content;
+
+    $marker_position = strpos($block_content, 'wp-block-navigation__container');
+    if ($marker_position === false) return $block_content;
+
+    $ul_start = strrpos(substr($block_content, 0, $marker_position), '<ul');
+    if ($ul_start === false) return $block_content;
+
+    $ul_open_end = strpos($block_content, '>', $marker_position);
+    if ($ul_open_end === false) return $block_content;
+
+    $search_markup = self::get_widget_markup('block');
+
+    $block_content = substr($block_content, 0, $ul_open_end + 1)
+      . $search_markup
+      . substr($block_content, $ul_open_end + 1);
+
+    self::$block_injected = true;
+
+    return $block_content;
+  }
+
+  public static function register_results_route() {
+    add_rewrite_rule('^search-all/?', 'index.php?univ_search=1', 'top');
+    add_rewrite_tag('%univ_search%', '1');
+  }
+
+  public static function results_template($template) {
+    if (get_query_var('univ_search') !== '1') return $template;
+    return plugin_dir_path(__FILE__) . '../templates/results.php';
+  }
+
+  private static function get_widget_markup(string $context): string {
+    $classes = ['menu-item', 'univ-search-item'];
+    if ($context === 'block') {
+      $classes[] = 'wp-block-navigation-item';
+    }
+
+    ob_start();
+    ?>
+      <li class="<?php echo esc_attr(implode(' ', $classes)); ?>">
         <button class="us-toggle" aria-expanded="false" aria-controls="us-panel">Search</button>
         <div id="us-panel" class="us-panel" hidden>
           <div class="us-modes" role="tablist">
@@ -58,16 +108,6 @@ class Render {
         </div>
       </li>
     <?php
-    return $items . ob_get_clean();
-  }
-
-  public static function register_results_route() {
-    add_rewrite_rule('^search-all/?', 'index.php?univ_search=1', 'top');
-    add_rewrite_tag('%univ_search%', '1');
-  }
-
-  public static function results_template($template) {
-    if (get_query_var('univ_search') !== '1') return $template;
-    return plugin_dir_path(__FILE__) . '../templates/results.php';
+    return trim(ob_get_clean());
   }
 }
