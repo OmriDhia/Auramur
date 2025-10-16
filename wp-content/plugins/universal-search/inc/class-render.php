@@ -9,7 +9,9 @@ class Render {
   public static function init() {
     add_action('wp_enqueue_scripts', [__CLASS__, 'assets']);
     add_filter('wp_nav_menu_items', [__CLASS__, 'inject_menu_widget'], 10, 2);
+
     add_filter('render_block_core/navigation', [__CLASS__, 'inject_block_navigation_widget'], 10, 3);
+
     add_action('init', [__CLASS__, 'register_results_route']);
     add_filter('template_include', [__CLASS__, 'results_template']);
   }
@@ -30,6 +32,7 @@ class Render {
     if (!isset($args->theme_location) || $args->theme_location !== 'primary') return $items;
     return $items . self::get_widget_markup('classic');
   }
+
 
   public static function inject_block_navigation_widget($block_content, $block, $instance = null) {
     if (self::$block_injected) return $block_content;
@@ -73,6 +76,7 @@ class Render {
       return $block_content;
     }
 
+
     self::$block_injected = true;
 
     return $block_content;
@@ -90,6 +94,7 @@ class Render {
 
   private static function get_widget_markup(string $context): string {
     $classes = ['menu-item', 'univ-search-item'];
+
     $content_wrapper_open = '';
     $content_wrapper_close = '';
 
@@ -107,6 +112,7 @@ class Render {
         <?php echo $content_wrapper_open; ?>
         <button class="us-toggle" aria-expanded="false" aria-controls="<?php echo esc_attr($panel_id); ?>">Search</button>
         <div id="<?php echo esc_attr($panel_id); ?>" class="us-panel" hidden>
+
           <div class="us-modes" role="tablist">
             <button role="tab" data-mode="text" aria-selected="true">Text</button>
             <button role="tab" data-mode="voice">Voice</button>
