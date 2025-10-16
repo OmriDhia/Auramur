@@ -59,10 +59,12 @@ class REST {
       error_log('Universal Search REST search error: ' . $e->getMessage());
       $fallback = Typesense::basic_search($payload);
       if ($fallback) {
-        return [
-          'results' => $fallback,
-          'warning' => __('Search service unavailable. Showing basic results from WordPress.', 'universal-search'),
-        ];
+
+        $response = ['results' => $fallback];
+        if (empty($fallback['hits'])) {
+          $response['warning'] = __('Search service unavailable. Showing basic results from WordPress.', 'universal-search');
+        }
+        return $response;
       }
       return self::err('Search service unavailable.', 503);
     }
