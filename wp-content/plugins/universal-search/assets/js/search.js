@@ -24,20 +24,24 @@
   if (!widgets.length) return;
 
   widgets.forEach((widget) => {
-    const toggle = $('.us-toggle', widget);
-    if (!toggle) return;
-
-    const panelId = toggle.getAttribute('aria-controls');
-    const panel = panelId ? document.getElementById(panelId) : $('.us-panel', widget);
+    const panel = $('.us-panel', widget);
     if (!panel) return;
 
-    const tabs = $$('.us-modes [role="tab"]', panel);
+    const toggle = $('.us-toggle', widget);
+    if (toggle) {
+      const panelId = toggle.getAttribute('aria-controls');
+      const resolvedPanel = panelId ? document.getElementById(panelId) : panel;
+      const target = resolvedPanel || panel;
+      toggle.addEventListener('click', () => {
+        const open = target.hasAttribute('hidden');
+        target.toggleAttribute('hidden', !open);
+        toggle.setAttribute('aria-expanded', String(open));
+      });
+    } else {
+      panel.removeAttribute('hidden');
+    }
 
-    toggle.addEventListener('click', () => {
-      const open = panel.hasAttribute('hidden');
-      panel.toggleAttribute('hidden', !open);
-      toggle.setAttribute('aria-expanded', String(open));
-    });
+    const tabs = $$('.us-modes [role="tab"]', panel);
 
     tabs.forEach(tab => tab.addEventListener('click', () => {
       tabs.forEach(t => t.setAttribute('aria-selected', 'false'));
@@ -143,18 +147,22 @@
         if (!response.ok) {
           throw new Error(data?.message || 'Search failed');
         }
+        const warning = typeof data?.warning === 'string' ? data.warning : '';
+        const warningItem = warning
+          ? `<li class="us-instant-status us-instant-warning">${escapeHtml(warning)}</li>`
+          : '';
         const hits = data?.results?.hits || [];
         if (!hits.length) {
-          instant.dataset.state = 'empty';
-          instantList.innerHTML = '<li class="us-instant-empty">No matches yet.</li>';
+          instant.dataset.state = warning ? 'warning' : 'empty';
+          instantList.innerHTML = warningItem + '<li class="us-instant-empty">No matches yet.</li>';
           if (instantMore) {
             instantMore.hidden = false;
             instantMore.href = buildResultsUrl(query, { query, limit: 24, page: 1, filters });
           }
           return;
         }
-        instant.dataset.state = 'results';
-        instantList.innerHTML = hits.map((hit) => {
+        instant.dataset.state = warning ? 'warning' : 'results';
+        instantList.innerHTML = warningItem + hits.map((hit) => {
           const doc = hit.document || {};
           const title = escapeHtml(doc.title || 'Untitled');
           const meta = [];

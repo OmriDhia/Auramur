@@ -110,8 +110,7 @@ class Render {
     ?>
       <li class="<?php echo esc_attr(implode(' ', $classes)); ?>">
         <?php echo $content_wrapper_open; ?>
-        <button class="us-toggle" aria-expanded="false" aria-controls="<?php echo esc_attr($panel_id); ?>">Search</button>
-        <div id="<?php echo esc_attr($panel_id); ?>" class="us-panel" hidden>
+        <div id="<?php echo esc_attr($panel_id); ?>" class="us-panel">
 
           <div class="us-modes" role="tablist">
             <button role="tab" data-mode="text" aria-selected="true">Text</button>

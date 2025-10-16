@@ -51,8 +51,21 @@ class REST {
     $payload = json_decode($req->get_body(), true);
     if (!$payload) return self::err('Bad JSON.');
     $payload = \UNIV_SEARCH\us_sanitize_array($payload);
-    $results = Typesense::search($payload);
-    return ['results' => $results];
+    try {
+      $results = Typesense::search($payload);
+      return ['results' => $results];
+    } catch (\Throwable $e) {
+      error_log('Universal Search REST search error: ' . $e->getMessage());
+      $fallback = Typesense::basic_search($payload);
+      if ($fallback) {
+        $response = ['results' => $fallback];
+        if (empty($fallback['hits'])) {
+          $response['warning'] = __('Search service unavailable. Showing basic results from WordPress.', 'universal-search');
+        }
+        return $response;
+      }
+      return self::err('Search service unavailable.', 503);
+    }
   }
 
   private static function err($msg, $code=400){ return new \WP_REST_Response(['message'=>$msg], $code); }
