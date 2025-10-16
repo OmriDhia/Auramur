@@ -2,6 +2,7 @@
 
 WordPress plugin that adds a multi-modal search (Text/Voice/Image) to the primary menu and queries Typesense.
 
+
 ## Install
 
 1. Upload the plugin folder to `wp-content/plugins/` or install the provided ZIP from WP Admin → Plugins → Add New → Upload Plugin.
@@ -29,5 +30,4 @@ The plugin maps `/search-all/` to a simple template in `templates/results.php`.
 - Voice & Image requests call OpenAI (Whisper + GPT-4o-mini for intent extraction / vision).
 - Text search can go directly via `/search-all/?q=...`.
 - For indexing WordPress content to Typesense, create a `site_content` collection and sync posts/products via cron (not included).
-
 
