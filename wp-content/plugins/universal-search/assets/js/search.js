@@ -147,18 +147,22 @@
         if (!response.ok) {
           throw new Error(data?.message || 'Search failed');
         }
+        const warning = typeof data?.warning === 'string' ? data.warning : '';
+        const warningItem = warning
+          ? `<li class="us-instant-status us-instant-warning">${escapeHtml(warning)}</li>`
+          : '';
         const hits = data?.results?.hits || [];
         if (!hits.length) {
-          instant.dataset.state = 'empty';
-          instantList.innerHTML = '<li class="us-instant-empty">No matches yet.</li>';
+          instant.dataset.state = warning ? 'warning' : 'empty';
+          instantList.innerHTML = warningItem + '<li class="us-instant-empty">No matches yet.</li>';
           if (instantMore) {
             instantMore.hidden = false;
             instantMore.href = buildResultsUrl(query, { query, limit: 24, page: 1, filters });
           }
           return;
         }
-        instant.dataset.state = 'results';
-        instantList.innerHTML = hits.map((hit) => {
+        instant.dataset.state = warning ? 'warning' : 'results';
+        instantList.innerHTML = warningItem + hits.map((hit) => {
           const doc = hit.document || {};
           const title = escapeHtml(doc.title || 'Untitled');
           const meta = [];

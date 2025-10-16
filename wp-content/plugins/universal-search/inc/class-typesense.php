@@ -339,4 +339,118 @@ class Typesense {
 
     return $document;
   }
+
+  public static function basic_search(array $payload) {
+    $query = isset($payload['query']) ? sanitize_text_field($payload['query']) : '';
+    if ($query === '') {
+      return [
+        'hits' => [],
+        'found' => 0,
+        'page' => 1,
+        'fallback' => true,
+      ];
+    }
+
+    $limit = max(1, min(50, intval($payload['limit'] ?? 5)));
+    $page  = max(1, intval($payload['page'] ?? 1));
+
+    $filters = is_array($payload['filters'] ?? null) ? $payload['filters'] : [];
+    $postTypes = [];
+    if (!empty($filters['post_type']) && is_array($filters['post_type'])) {
+      $postTypes = array_filter(array_map('sanitize_key', $filters['post_type']));
+    }
+    if (empty($postTypes)) {
+      $postTypes = self::get_indexable_post_types();
+    }
+
+    if (!class_exists('\WP_Query')) {
+      return null;
+    }
+
+    $args = [
+      's' => $query,
+      'post_type' => $postTypes,
+      'posts_per_page' => $limit,
+      'paged' => $page,
+      'post_status' => 'publish',
+      'no_found_rows' => false,
+      'ignore_sticky_posts' => true,
+    ];
+
+    $wp_query = new \WP_Query($args);
+    $hits = [];
+
+    if ($wp_query->have_posts()) {
+      foreach ($wp_query->posts as $post) {
+        $post_id = $post->ID;
+        $post_type = get_post_type($post_id);
+        $thumbnail = get_the_post_thumbnail_url($post_id, 'medium');
+        $categories = self::get_term_slugs($post_id, 'category');
+        $tags = self::get_term_slugs($post_id, 'post_tag');
+
+        if ($post_type === 'product') {
+          $product_cats = self::get_term_slugs($post_id, 'product_cat');
+          if ($product_cats) {
+            $categories = array_values(array_unique(array_merge($categories, $product_cats)));
+          }
+          $product_tags = self::get_term_slugs($post_id, 'product_tag');
+          if ($product_tags) {
+            $tags = array_values(array_unique(array_merge($tags, $product_tags)));
+          }
+        }
+
+        $timestamp = function_exists('get_post_timestamp')
+          ? get_post_timestamp($post_id)
+          : strtotime(get_post_time('c', true, $post_id));
+
+        $document = [
+          'id' => (string) $post_id,
+          'title' => get_the_title($post_id),
+          'excerpt' => wp_strip_all_tags(get_the_excerpt($post_id)),
+          'content' => '',
+          'permalink' => get_permalink($post_id),
+          'image' => $thumbnail ?: '',
+          'post_type' => $post_type,
+          'date' => $timestamp ?: 0,
+          'categories' => $categories,
+          'tags' => $tags,
+          'author' => get_the_author_meta('display_name', $post->post_author),
+        ];
+
+        if ($post_type === 'product' && function_exists('wc_get_product')) {
+          $product = wc_get_product($post_id);
+          if ($product) {
+            $document['price'] = (float) $product->get_price();
+            $document['sku'] = $product->get_sku();
+            $document['stock_status'] = $product->get_stock_status();
+          }
+        }
+
+        $hits[] = [
+          'document' => $document,
+          'highlights' => [],
+        ];
+      }
+      wp_reset_postdata();
+    }
+
+    return [
+      'hits' => $hits,
+      'found' => intval($wp_query->found_posts),
+      'page' => $page,
+      'fallback' => true,
+    ];
+  }
+
+  private static function get_term_slugs($post_id, $taxonomy) {
+    $terms = get_the_terms($post_id, $taxonomy);
+    if (!is_array($terms)) {
+      return [];
+    }
+    return array_values(array_unique(array_map(function ($term) {
+      return sanitize_title($term->slug ?? '');
+    }, array_filter($terms, function ($term) {
+      return $term instanceof \WP_Term;
+    }))));
+  }
 }
