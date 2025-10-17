@@ -4,7 +4,8 @@
   "type": "project",
   "require": {
     "typesense/typesense-php": "^5.1",
-    "symfony/http-client": "^7.3"
+    "symfony/http-client": "^7.3",
+    "php-http/curl-client": "^2.3"
   },
   "autoload": {
     "psr-4": {

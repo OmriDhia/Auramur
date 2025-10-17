@@ -15,6 +15,7 @@ require_once __DIR__ . '/inc/class-typesense.php';
 require_once __DIR__ . '/inc/class-ai.php';
 require_once __DIR__ . '/inc/class-rest.php';
 require_once __DIR__ . '/inc/class-render.php';
+require_once __DIR__ . '/inc/class-cli.php';
 
 add_action('plugins_loaded', function () {
   \UNIV_SEARCH\Settings::init();
@@ -22,4 +23,5 @@ add_action('plugins_loaded', function () {
   \UNIV_SEARCH\AI::init();
   \UNIV_SEARCH\REST::init();
   \UNIV_SEARCH\Render::init();
+  \UNIV_SEARCH\CLI::register();
 });

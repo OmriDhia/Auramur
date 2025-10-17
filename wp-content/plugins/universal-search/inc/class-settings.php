@@ -5,6 +5,7 @@ if (!defined('ABSPATH')) exit;
 
 class Settings {
   public static function init() {
+    add_action('init', [__CLASS__, 'bootstrap_defaults']);
     add_action('admin_menu', function(){
       add_options_page('Universal Search', 'Universal Search', 'manage_options', 'univ-search', [__CLASS__, 'page']);
     });
@@ -87,5 +88,39 @@ class Settings {
       $sanitized['typesense_post_types'] = [];
     }
     return $sanitized;
+  }
+
+  public static function bootstrap_defaults() {
+    if (!function_exists('get_option')) {
+      return;
+    }
+
+    $defaults = [
+      'typesense_host'       => getenv('TYPESENSE_HOST') ?: 'typesense',
+      'typesense_port'       => getenv('TYPESENSE_PORT') ?: '8108',
+      'typesense_proto'      => getenv('TYPESENSE_PROTOCOL') ?: 'http',
+      'typesense_key'        => getenv('TYPESENSE_API_KEY') ?: 'eSiSArntEnTinEQuOunCutaIGEtoReag',
+      'typesense_collection' => getenv('TYPESENSE_COLLECTION') ?: 'site_content',
+    ];
+
+    $options = get_option('univ_search_options', []);
+    $options = is_array($options) ? $options : [];
+    $updated = false;
+
+    foreach ($defaults as $key => $value) {
+      if (empty($options[$key]) && !empty($value)) {
+        $options[$key] = $value;
+        $updated = true;
+      }
+    }
+
+    if (empty($options['typesense_post_types']) && post_type_exists('product')) {
+      $options['typesense_post_types'] = ['product'];
+      $updated = true;
+    }
+
+    if ($updated) {
+      update_option('univ_search_options', $options);
+    }
   }
 }
