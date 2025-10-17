@@ -147,6 +147,10 @@ class Typesense {
   public static function search(array $queryJson) {
     $client = self::client();
     if (!$client) {
+      $fallback = self::basic_search($queryJson);
+      if ($fallback !== null) {
+        return $fallback;
+      }
       throw new \Exception('Typesense not configured.');
     }
     self::ensure_collection();
@@ -172,7 +176,16 @@ class Typesense {
     }
     if ($sort_by) $params['sort_by'] = $sort_by;
 
-    return $client->collections[$collection]->documents->search($params);
+    try {
+      return $client->collections[$collection]->documents->search($params);
+    } catch (\Throwable $e) {
+      error_log('Universal Search Typesense search error: ' . $e->getMessage());
+      $fallback = self::basic_search($queryJson);
+      if ($fallback !== null) {
+        return $fallback;
+      }
+      throw $e;
+    }
   }
 
   private static function build_filter(array $f): string {
