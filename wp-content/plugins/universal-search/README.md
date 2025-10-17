@@ -17,7 +17,7 @@ WordPress plugin that adds a multi-modal search (Text/Voice/Image) to the primar
 
 4. Configure **Settings → Universal Search**:
    - OpenAI API Key
-   - Typesense: host, port, protocol, key, and collection
+   - Typesense: host, port, protocol, key, and collection (the plugin auto-fills `typesense:8108`, `http`, key `eSiSArntEnTinEQuOunCutaIGEtoReag`, and collection `site_content` when empty)
 
 5. Make sure your theme registers a `primary` menu location. The search widget injects into that menu.
 
@@ -49,15 +49,20 @@ Follow these steps to verify the Typesense integration, the instant dropdown, an
      - Choose the post types you wish to index (e.g. `post`, `product`).
      - Save to trigger a background re-sync.
 
-4. **Trigger an initial re-index (optional, speeds up testing).**
-   - Inside the WordPress container run `wp cron event run univ_search_sync_all` to immediately sync existing content.
+4. **Verify Typesense is reachable from WordPress.**
+   - Run `docker compose exec wordpress wp univ-search typesense-health`.
+   - The command reports the WordPress URL, container host name, configured collection, and Typesense health status.
+
+5. **Trigger an initial product-only re-index (fast + explicit).**
+   - Inside the WordPress container run `wp univ-search backfill-products`.
+   - The command syncs every published WooCommerce product directly to Typesense over HTTP without requiring Composer.
    - Verify the collection in Typesense contains documents: `curl http://typesense:8108/collections/site_content/documents/search -H "X-TYPESENSE-API-KEY: eSiSArntEnTinEQuOunCutaIGEtoReag" -G --data-urlencode "q=*" --data-urlencode "query_by=title"`.
 
-5. **Test the front end.**
+6. **Test the front end.**
    - Visit `http://localhost:8081` and use the primary navigation search bar.
    - Typing should show the instant dropdown; clicking **View more results** should redirect to `/search-all/` with full listings, product imagery, and prices for WooCommerce items.
 
-6. **Regression checks.**
+7. **Regression checks.**
    - Create, update, and delete posts/products in WordPress and confirm Typesense reflects the changes (e.g. repeat the `curl` search or use the dashboard search).
    - Switch the indexed post types in **Settings → Universal Search**, save, and ensure removed types disappear from Typesense results.
 
