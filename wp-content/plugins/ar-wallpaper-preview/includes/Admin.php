@@ -46,80 +46,73 @@ class ARWP_Admin {
 			array( $this, 'text_input_callback' ),
 			'ar-wallpaper-preview',
 			'arwp_main_section',
-			array(
-				'id'    => 'default_width_cm',
-				'label' => __( 'Default width of the wallpaper in centimeters.', 'ar-wallpaper-preview' ),
-				'type'  => 'number',
-			)
-		);
-		add_settings_field(
-			'default_height_cm',
-			__( 'Default Wallpaper Height (cm)', 'ar-wallpaper-preview' ),
-			array( $this, 'text_input_callback' ),
-			'ar-wallpaper-preview',
-			'arwp_main_section',
-			array(
-				'id'    => 'default_height_cm',
-				'label' => __( 'Default height of the wallpaper in centimeters.', 'ar-wallpaper-preview' ),
-				'type'  => 'number',
-			)
-		);
+                        array(
+                                'id'    => 'default_width_cm',
+                                'label' => __( 'Default width of the wallpaper in centimeters.', 'ar-wallpaper-preview' ),
+                                'type'  => 'number',
+                                'min'   => 50,
+                        )
+                );
+                add_settings_field(
+                        'default_height_cm',
+                        __( 'Default Wallpaper Height (cm)', 'ar-wallpaper-preview' ),
+                        array( $this, 'text_input_callback' ),
+                        'ar-wallpaper-preview',
+                        'arwp_main_section',
+                        array(
+                                'id'    => 'default_height_cm',
+                                'label' => __( 'Default height of the wallpaper in centimeters.', 'ar-wallpaper-preview' ),
+                                'type'  => 'number',
+                                'min'   => 50,
+                        )
+                );
 
-		// Tiling
-		add_settings_field(
-			'enable_tiling',
-			__( 'Enable Tiling by Default', 'ar-wallpaper-preview' ),
-			array( $this, 'checkbox_callback' ),
-			'ar-wallpaper-preview',
-			'arwp_main_section',
-			array(
-				'id'    => 'enable_tiling',
-				'label' => __( 'Check to enable wallpaper tiling/repeat by default.', 'ar-wallpaper-preview' ),
-			)
-		);
+                // Default Scale
+                add_settings_field(
+                        'default_scale_percent',
+                        __( 'Default Preview Scale (%)', 'ar-wallpaper-preview' ),
+                        array( $this, 'text_input_callback' ),
+                        'ar-wallpaper-preview',
+                        'arwp_main_section',
+                        array(
+                                'id'    => 'default_scale_percent',
+                                'label' => __( 'How large the wallpaper should appear by default inside the fallback viewer.', 'ar-wallpaper-preview' ),
+                                'type'  => 'number',
+                                'min'   => 10,
+                                'max'   => 300,
+                        )
+                );
 
-		// AR Engine Priority
-		add_settings_field(
-			'ar_engine_priority',
-			__( 'AR Engine Priority', 'ar-wallpaper-preview' ),
-			array( $this, 'text_input_callback' ),
-			'ar-wallpaper-preview',
-			'arwp_main_section',
-			array(
-				'id'    => 'ar_engine_priority',
-				'label' => __( 'Comma-separated list of AR engines in order of preference (e.g., webxr,arjs,canvas_fallback).', 'ar-wallpaper-preview' ),
-				'type'  => 'text',
-			)
-		);
+                // Overlay Opacity
+                add_settings_field(
+                        'overlay_opacity',
+                        __( 'Overlay Opacity', 'ar-wallpaper-preview' ),
+                        array( $this, 'text_input_callback' ),
+                        'ar-wallpaper-preview',
+                        'arwp_main_section',
+                        array(
+                                'id'    => 'overlay_opacity',
+                                'label' => __( 'Transparency of the wallpaper overlay (0 = transparent, 1 = opaque).', 'ar-wallpaper-preview' ),
+                                'type'  => 'number',
+                                'step'  => 0.05,
+                                'min'   => 0,
+                                'max'   => 1,
+                        )
+                );
 
-		// Default Marker URL
-		add_settings_field(
-			'default_marker_url',
-			__( 'Default AR Marker URL', 'ar-wallpaper-preview' ),
-			array( $this, 'text_input_callback' ),
-			'ar-wallpaper-preview',
-			'arwp_main_section',
-			array(
-				'id'    => 'default_marker_url',
-				'label' => __( 'URL to a default marker image for AR.js fallback mode.', 'ar-wallpaper-preview' ),
-				'type'  => 'url',
-			)
-		);
-
-		// Max Texture Resolution
-		add_settings_field(
-			'max_texture_resolution',
-			__( 'Max Texture Resolution (px)', 'ar-wallpaper-preview' ),
-			array( $this, 'text_input_callback' ),
-			'ar-wallpaper-preview',
-			'arwp_main_section',
-			array(
-				'id'    => 'max_texture_resolution',
-				'label' => __( 'Maximum texture size (e.g., 2048) to prevent memory issues on mobile devices.', 'ar-wallpaper-preview' ),
-				'type'  => 'number',
-			)
-		);
-	}
+                // Snapshot toggle
+                add_settings_field(
+                        'enable_snapshot',
+                        __( 'Enable Snapshot Button', 'ar-wallpaper-preview' ),
+                        array( $this, 'checkbox_callback' ),
+                        'ar-wallpaper-preview',
+                        'arwp_main_section',
+                        array(
+                                'id'    => 'enable_snapshot',
+                                'label' => __( 'Allow shoppers to capture and download a still image of the preview.', 'ar-wallpaper-preview' ),
+                        )
+                );
+        }
 
 	/**
 	 * Settings section callback.
@@ -139,12 +132,19 @@ class ARWP_Admin {
 		$value   = isset( $options[ $id ] ) ? $options[ $id ] : '';
 		$type    = isset( $args['type'] ) ? $args['type'] : 'text';
 
-		printf(
-			'<input type="%1$s" id="%2$s" name="arwp_settings[%2$s]" value="%3$s" class="regular-text" />',
-			esc_attr( $type ),
-			esc_attr( $id ),
-			esc_attr( $value )
-		);
+                $step = isset( $args['step'] ) ? ' step="' . esc_attr( $args['step'] ) . '"' : '';
+                $min  = isset( $args['min'] ) ? ' min="' . esc_attr( $args['min'] ) . '"' : '';
+                $max  = isset( $args['max'] ) ? ' max="' . esc_attr( $args['max'] ) . '"' : '';
+
+                printf(
+                        '<input type="%1$s" id="%2$s" name="arwp_settings[%2$s]" value="%3$s" class="regular-text"%4$s%5$s%6$s />',
+                        esc_attr( $type ),
+                        esc_attr( $id ),
+                        esc_attr( $value ),
+                        $step,
+                        $min,
+                        $max
+                );
 
 		if ( isset( $args['label'] ) ) {
 			printf( '<p class="description">%s</p>', esc_html( $args['label'] ) );
@@ -167,9 +167,9 @@ class ARWP_Admin {
 			checked( $checked, true, false )
 		);
 
-		if ( isset( $args['label'] ) ) {
-			printf( '<label for="%1$s">%2$s</label>', esc_html( $args['label'] ) );
-		}
+                if ( isset( $args['label'] ) ) {
+                        printf( '<label for="%1$s">%2$s</label>', esc_attr( $id ), esc_html( $args['label'] ) );
+                }
 	}
 
 	/**
@@ -179,35 +179,27 @@ class ARWP_Admin {
 	 * @return array Validated data.
 	 */
 	public function settings_validate( $input ) {
-		$output = get_option( 'arwp_settings' );
+                $output = get_option( 'arwp_settings' );
+                if ( ! is_array( $output ) ) {
+                        $output = array();
+                }
 
 		// Validate default_width_cm and default_height_cm
 		$output['default_width_cm']  = isset( $input['default_width_cm'] ) ? absint( $input['default_width_cm'] ) : 300;
 		$output['default_height_cm'] = isset( $input['default_height_cm'] ) ? absint( $input['default_height_cm'] ) : 250;
 
-		// Validate enable_tiling
-		$output['enable_tiling'] = isset( $input['enable_tiling'] ) ? 'yes' : 'no';
+                // Validate default_scale_percent
+                $output['default_scale_percent'] = isset( $input['default_scale_percent'] ) ? max( 10, min( 300, absint( $input['default_scale_percent'] ) ) ) : 100;
 
-		// Validate ar_engine_priority
-		$priority = isset( $input['ar_engine_priority'] ) ? sanitize_text_field( $input['ar_engine_priority'] ) : 'webxr,arjs,canvas_fallback';
-		$engines = array_map( 'trim', explode( ',', $priority ) );
-		$valid_engines = array( 'webxr', 'arjs', 'canvas_fallback' );
-		$filtered_engines = array_filter( $engines, function( $engine ) use ( $valid_engines ) {
-			return in_array( $engine, $valid_engines, true );
-		} );
-		$output['ar_engine_priority'] = implode( ',', $filtered_engines );
-		if ( empty( $output['ar_engine_priority'] ) ) {
-			$output['ar_engine_priority'] = 'webxr,arjs,canvas_fallback'; // Fallback to default
-		}
+                // Validate overlay_opacity
+                $opacity = isset( $input['overlay_opacity'] ) ? floatval( $input['overlay_opacity'] ) : 0.9;
+                $output['overlay_opacity'] = min( 1, max( 0.1, $opacity ) );
 
-		// Validate default_marker_url
-		$output['default_marker_url'] = isset( $input['default_marker_url'] ) ? esc_url_raw( $input['default_marker_url'] ) : '';
+                // Validate enable_snapshot
+                $output['enable_snapshot'] = isset( $input['enable_snapshot'] ) ? 'yes' : 'no';
 
-		// Validate max_texture_resolution
-		$output['max_texture_resolution'] = isset( $input['max_texture_resolution'] ) ? absint( $input['max_texture_resolution'] ) : 2048;
-
-		return $output;
-	}
+                return $output;
+        }
 
 	/**
 	 * Options page display.

@@ -1,6 +1,6 @@
 === AR Wallpaper Preview ===
 Contributors: manus-ai
-Tags: ar, webxr, augmented reality, wallpaper, preview, three.js, ar.js, gutenberg, shortcode
+Tags: ar, webxr, augmented reality, wallpaper, preview, woocommerce, camera, shortcode
 Requires at least: 5.8
 Tested up to: 6.4
 Requires PHP: 7.4
@@ -8,62 +8,82 @@ Stable tag: 1.0.0
 License: GPL2
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
-An advanced WordPress plugin that allows shoppers to preview wallpapers on their real walls using their phone camera with WebXR, AR.js, and canvas fallback support.
+Preview wallcoverings in a shopper's own space using WebXR with a camera-based fallback – all from a lightweight WooCommerce-friendly plugin.
 
 == Description ==
 
-The **AR Wallpaper Preview** plugin provides a seamless augmented reality experience for visualizing wallpapers in a real-world environment. It intelligently detects the user's device capabilities and falls back to the best available technology, ensuring maximum compatibility.
+The **AR Wallpaper Preview** plugin adds a "Preview in My Room" button to WooCommerce product pages (and a reusable shortcode) so customers can see how a wallpaper will look on their own wall. When the button is tapped the plugin opens an in-browser modal and automatically loads the best available experience:
 
-**Features:**
+* WebXR plane detection for supported mobile browsers – place the wallpaper at life-size directly on a detected wall surface.
+* A camera-based fallback with draggable/rotatable overlay for browsers that do not expose WebXR or when camera permissions are denied.
 
-*   **WebXR (Primary):** Uses Three.js and the WebXR Device API for high-fidelity, scaled, and interactive placement on detected surfaces (walls/floors).
-*   **AR.js (Fallback):** Provides a fallback for devices that support camera access but not full WebXR, using marker-based or simplified markerless AR.
-*   **Canvas Fallback (Last Resort):** A 2D canvas-based solution that allows users to manually adjust a perspective-warped image over the live camera feed.
-*   **Shortcode & Gutenberg Block:** Easily embed the AR preview on any product page using `[ar_wallpaper_preview image="<URL>"]` or the dedicated Gutenberg block.
-*   **Customization:** Users can adjust scale, rotation, tiling, and brightness of the virtual wallpaper.
-*   **Admin Settings:** Configure default sizes, AR engine priority, and performance limits (max texture resolution).
+Everything runs in-browser with zero third-party services. Scripts and camera access are only requested when the shopper opens the modal. Optional controls let visitors adjust scale, rotate the preview, or capture a still snapshot (if enabled in settings).
+
+== Features ==
+
+* **Automatic WooCommerce integration** – injects a "Preview in My Room" button on single product pages (after the Add to Cart button).
+* **WebXR plane detection** – life-size placement that respects the wallpaper aspect ratio when immersive AR is supported.
+* **Elegant fallback viewer** – live camera feed with manual drag, rotate, and scale controls when WebXR is unavailable.
+* **Performance conscious** – viewer scripts are lazy-loaded when the modal opens, keeping product pages fast.
+* **Snapshot capture** – optional button lets shoppers download a composited preview image from the fallback viewer.
+* **Custom settings** – configure default wallpaper dimensions, overlay opacity, and whether the snapshot button is available.
+* **Shortcode support** – drop the button anywhere with `[ar_wallpaper_preview]`.
 
 == Installation ==
 
-1.  Upload the `ar-wallpaper-preview` folder to the `/wp-content/plugins/` directory.
-2.  Activate the plugin through the 'Plugins' menu in WordPress.
-3.  (Optional) Configure the default settings under **Settings -> AR Wallpaper Preview**.
+1. Upload the `ar-wallpaper-preview` folder to the `/wp-content/plugins/` directory or install via the WordPress plugin installer.
+2. Activate the plugin through the **Plugins** menu.
+3. Visit **Settings → AR Wallpaper Preview** to tweak defaults such as wallpaper size, overlay opacity, and snapshot availability.
 
 == Usage ==
 
+### Automatic WooCommerce button
+
+The plugin automatically appends a "Preview in My Room" button to single product pages as long as the product has a featured image. No template changes are required.
+
+To change the placement you can remove the default action and re-add it in your theme:
+
+```
+remove_action( 'woocommerce_single_product_summary', [ ARWP_Frontend::instance(), 'render_product_button' ], 35 );
+add_action( 'woocommerce_single_product_summary', function () {
+    echo ARWP_Frontend::instance()->get_button_html( [
+        'classes' => 'button alt arwp-trigger-button',
+    ] );
+}, 25 );
+```
+
 ### Shortcode
 
-Use the shortcode on any post or page:
+Use the `[ar_wallpaper_preview]` shortcode anywhere (product, page, or block editor). When no attributes are supplied the shortcode will fall back to the current post's featured image and title:
 
-`[ar_wallpaper_preview image="https://example.com/wallpaper.jpg" width_cm="300" height_cm="250" tiling="true" repeat_x="2" repeat_y="2" brightness="1.2"]`
+```
+[ar_wallpaper_preview]
+```
 
-**Attributes:**
+You can explicitly set the wallpaper image or label:
 
-*   `image` (required): Absolute URL to the wallpaper image.
-*   `width_cm`: Width of the wallpaper in centimeters (defaults to Admin setting).
-*   `height_cm`: Height of the wallpaper in centimeters (defaults to Admin setting).
-*   `tiling`: `true` or `false` to enable/disable tiling (defaults to Admin setting).
-*   `repeat_x`: Number of times to repeat the texture horizontally (default: 1).
-*   `repeat_y`: Number of times to repeat the texture vertically (default: 1).
-*   `brightness`: Brightness multiplier (0.5 to 1.5, default: 1.0).
-*   `engine`: Override the engine priority (`auto`, `webxr`, `arjs`, `canvas`).
+```
+[ar_wallpaper_preview image="https://example.com/wp-content/uploads/wallpaper.jpg" label="Preview this wallpaper"]
+```
 
-### Gutenberg Block
+== Settings ==
 
-Search for the "AR Wallpaper Preview" block in the editor. The block provides a user-friendly interface to select the image and configure all the attributes listed above.
+The settings screen lets you define:
+
+* **Default wallpaper width/height (cm)** – used to size the plane in WebXR and initial overlay scale in fallback mode.
+* **Default preview scale (%)** – initial size of the overlay within the fallback viewer.
+* **Overlay opacity** – blend amount between camera feed and wallpaper image.
+* **Enable snapshot button** – allow or disallow downloading a composed preview image.
 
 == Compatibility ==
 
 | Feature | Browser/OS | Notes |
 | :--- | :--- | :--- |
-| **WebXR** | Chrome (Android), Edge (Android), Firefox Reality | Requires a device with ARCore/ARKit support and a compatible browser. |
-| **AR.js** | Most modern mobile browsers | Requires camera access. Markerless mode is a simplified approximation. |
-| **Canvas Fallback** | All modern browsers | Requires camera access. Placement is manual and approximate (no true perspective). |
+| **WebXR preview** | Chrome for Android, Samsung Internet, Safari on iOS 17+ | Requires a device with ARCore/ARKit support and camera permissions. |
+| **Fallback viewer** | All modern browsers with `getUserMedia` | Provides draggable/rotatable overlay when WebXR is unavailable or denied. |
+| **Snapshot capture** | Same as fallback viewer | Requires camera permission; disabled when snapshots are turned off in settings. |
 
 == Changelog ==
 
 = 1.0.0 =
-* Initial release with WebXR, AR.js, and Canvas Fallback engines.
-* Full shortcode and Gutenberg block support.
-* Admin settings for configuration and performance tuning.
-* i18n ready.
+* Initial release with WebXR placement, camera-based fallback, WooCommerce integration, shortcode, and snapshot option.
