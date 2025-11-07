@@ -51,19 +51,16 @@ class ARWP_PluginCore {
 	/**
 	 * Plugin initialization.
 	 */
-        public function init() {
-                // Initialize front-end hooks early so assets and modal markup are available.
-                $frontend = ARWP_Frontend::instance();
+	public function init() {
+		// Initialize Admin settings.
+		new ARWP_Admin();
 
-                // Initialize Admin settings.
-                new ARWP_Admin();
+		// Initialize Shortcode.
+		new ARWP_Shortcode();
 
-                // Initialize Shortcode with access to the shared front-end helper.
-                new ARWP_Shortcode( $frontend );
-
-                // Register Gutenberg Block if a block build is present.
-                add_action( 'init', array( $this, 'register_block' ) );
-        }
+		// Register Gutenberg Block.
+		add_action( 'init', array( $this, 'register_block' ) );
+	}
 
 	/**
 	 * Register the Gutenberg Block.
@@ -88,18 +85,16 @@ class ARWP_PluginCore {
 	 */
 	public static function activate() {
 		// Set default options on activation.
-                $default_options = array(
-                        'default_width_cm'      => 300,
-                        'default_height_cm'     => 250,
-                        'default_scale_percent' => 100,
-                        'overlay_opacity'       => 0.9,
-                        'enable_snapshot'       => 'yes',
-                );
-
-                if ( ! get_option( 'arwp_settings' ) ) {
-                        add_option( 'arwp_settings', $default_options );
-                }
-        }
+		$default_options = array(
+			'default_width_cm'  => 300,
+			'default_height_cm' => 250,
+			'enable_tiling'     => 'yes',
+			'ar_engine_priority' => 'webxr,arjs,canvas_fallback',
+			'default_marker_url' => '',
+			'max_texture_resolution' => 2048, // Max texture size in pixels (e.g., 2048x2048)
+		);
+		add_option( 'arwp_settings', $default_options );
+	}
 
 	/**
 	 * Deactivation hook.
