@@ -23,6 +23,7 @@ define( 'ARWP_PLUGIN_URL', plugin_dir_url( __FILE__ ) );
 // Include core classes.
 require_once ARWP_PLUGIN_DIR . 'includes/Admin.php';
 require_once ARWP_PLUGIN_DIR . 'includes/Shortcode.php';
+require_once ARWP_PLUGIN_DIR . 'includes/Frontend.php';
 require_once ARWP_PLUGIN_DIR . 'includes/PluginCore.php';
 
 /**
